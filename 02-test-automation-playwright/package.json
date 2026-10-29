@@ -1,0 +1,17 @@
+{
+  "name": "saucedemo-playwright-tests",
+  "version": "1.0.0",
+  "description": "End-to-end UI test automation for the SauceDemo web app using Playwright. QA portfolio sample.",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:report": "playwright show-report",
+    "install:browsers": "playwright install"
+  },
+  "keywords": ["playwright", "e2e", "test-automation", "qa", "ui-testing"],
+  "author": "Mynor Estrada",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.48.0"
+  }
+}

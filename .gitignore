@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Playwright
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+
+# Newman reports
+01-api-testing-postman/reports/
+
+# OS files
+.DS_Store
+Thumbs.db

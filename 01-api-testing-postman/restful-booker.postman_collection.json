@@ -1,0 +1,372 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-0001-4a2b-9c3d-restfulbooker01",
+    "name": "Restful-Booker API Tests",
+    "description": "API test collection for the Restful-Booker API. Covers authentication, CRUD operations on bookings, positive and negative scenarios, schema validation and response-time assertions.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health check - Ping",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Response time is below 2000 ms', function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/ping",
+          "host": ["{{base_url}}"],
+          "path": ["ping"]
+        },
+        "description": "Verifies the API is up. Expected 201 Created per Restful-Booker docs."
+      },
+      "response": []
+    },
+    {
+      "name": "Auth - Create token (valid credentials)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Response contains a token', function () {",
+              "    pm.expect(body).to.have.property('token');",
+              "    pm.expect(body.token).to.be.a('string').and.not.empty;",
+              "});",
+              "",
+              "pm.test('Response time is below 2000 ms', function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+              "});",
+              "",
+              "pm.collectionVariables.set('token', body.token);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth",
+          "host": ["{{base_url}}"],
+          "path": ["auth"]
+        },
+        "description": "Happy path: generates an auth token used by PUT/DELETE operations."
+      },
+      "response": []
+    },
+    {
+      "name": "Auth - Create token (invalid credentials)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200 (API returns 200 even on bad creds)', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Response reports a bad credentials reason', function () {",
+              "    pm.expect(body).to.have.property('reason');",
+              "    pm.expect(body.reason).to.eql('Bad credentials');",
+              "});",
+              "",
+              "pm.test('No token is issued for invalid credentials', function () {",
+              "    pm.expect(body).to.not.have.property('token');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"username\": \"wrong_user\",\n    \"password\": \"wrong_password\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth",
+          "host": ["{{base_url}}"],
+          "path": ["auth"]
+        },
+        "description": "Negative scenario: invalid credentials must not return a token."
+      },
+      "response": []
+    },
+    {
+      "name": "Booking - Create booking",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Response returns a bookingid', function () {",
+              "    pm.expect(body).to.have.property('bookingid');",
+              "    pm.expect(body.bookingid).to.be.a('number');",
+              "});",
+              "",
+              "pm.test('Returned booking matches the request payload', function () {",
+              "    pm.expect(body.booking.firstname).to.eql('Mynor');",
+              "    pm.expect(body.booking.lastname).to.eql('Estrada');",
+              "    pm.expect(body.booking.totalprice).to.eql(150);",
+              "    pm.expect(body.booking.depositpaid).to.eql(true);",
+              "});",
+              "",
+              "pm.test('Response time is below 2000 ms', function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+              "});",
+              "",
+              "pm.collectionVariables.set('bookingid', body.bookingid);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"firstname\": \"Mynor\",\n    \"lastname\": \"Estrada\",\n    \"totalprice\": 150,\n    \"depositpaid\": true,\n    \"bookingdates\": {\n        \"checkin\": \"2026-01-01\",\n        \"checkout\": \"2026-01-05\"\n    },\n    \"additionalneeds\": \"Breakfast\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/booking",
+          "host": ["{{base_url}}"],
+          "path": ["booking"]
+        },
+        "description": "Happy path: creates a booking and stores its id."
+      },
+      "response": []
+    },
+    {
+      "name": "Booking - Get booking by id",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Schema: all expected fields are present with correct types', function () {",
+              "    pm.expect(body).to.have.property('firstname').that.is.a('string');",
+              "    pm.expect(body).to.have.property('lastname').that.is.a('string');",
+              "    pm.expect(body).to.have.property('totalprice').that.is.a('number');",
+              "    pm.expect(body).to.have.property('depositpaid').that.is.a('boolean');",
+              "    pm.expect(body).to.have.property('bookingdates').that.is.an('object');",
+              "    pm.expect(body.bookingdates).to.have.property('checkin');",
+              "    pm.expect(body.bookingdates).to.have.property('checkout');",
+              "});",
+              "",
+              "pm.test('Response time is below 2000 ms', function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/booking/{{bookingid}}",
+          "host": ["{{base_url}}"],
+          "path": ["booking", "{{bookingid}}"]
+        },
+        "description": "Retrieves the booking created above and validates its schema."
+      },
+      "response": []
+    },
+    {
+      "name": "Booking - Get booking by id (not found)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 404 for a non-existent booking', function () {",
+              "    pm.response.to.have.status(404);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/booking/99999999",
+          "host": ["{{base_url}}"],
+          "path": ["booking", "99999999"]
+        },
+        "description": "Negative scenario: requesting a non-existent id should return 404."
+      },
+      "response": []
+    },
+    {
+      "name": "Booking - Update booking (PUT, authenticated)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const body = pm.response.json();",
+              "",
+              "pm.test('Fields were updated correctly', function () {",
+              "    pm.expect(body.firstname).to.eql('Mynor');",
+              "    pm.expect(body.lastname).to.eql('Updated');",
+              "    pm.expect(body.totalprice).to.eql(250);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Cookie", "value": "token={{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"firstname\": \"Mynor\",\n    \"lastname\": \"Updated\",\n    \"totalprice\": 250,\n    \"depositpaid\": false,\n    \"bookingdates\": {\n        \"checkin\": \"2026-02-01\",\n        \"checkout\": \"2026-02-10\"\n    },\n    \"additionalneeds\": \"Late checkout\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/booking/{{bookingid}}",
+          "host": ["{{base_url}}"],
+          "path": ["booking", "{{bookingid}}"]
+        },
+        "description": "Happy path: updates the booking using the auth token cookie."
+      },
+      "response": []
+    },
+    {
+      "name": "Booking - Update booking (PUT, no token)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 403 Forbidden without a token', function () {",
+              "    pm.response.to.have.status(403);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"firstname\": \"NoAuth\",\n    \"lastname\": \"Attempt\",\n    \"totalprice\": 1,\n    \"depositpaid\": false,\n    \"bookingdates\": {\n        \"checkin\": \"2026-02-01\",\n        \"checkout\": \"2026-02-10\"\n    }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/booking/{{bookingid}}",
+          "host": ["{{base_url}}"],
+          "path": ["booking", "{{bookingid}}"]
+        },
+        "description": "Security/access-control scenario: updating without a token must be rejected (403)."
+      },
+      "response": []
+    },
+    {
+      "name": "Booking - Delete booking (authenticated)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status code is 201 (Restful-Booker returns 201 on delete)', function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "token={{token}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/booking/{{bookingid}}",
+          "host": ["{{base_url}}"],
+          "path": ["booking", "{{bookingid}}"]
+        },
+        "description": "Happy path: deletes the booking created during this run."
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "https://restful-booker.herokuapp.com" },
+    { "key": "username", "value": "admin" },
+    { "key": "password", "value": "password123" },
+    { "key": "token", "value": "" },
+    { "key": "bookingid", "value": "" }
+  ]
+}
