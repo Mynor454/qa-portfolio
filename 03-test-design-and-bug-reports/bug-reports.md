@@ -25,7 +25,7 @@ Each report follows the format I use day to day: unique ID, severity/priority, e
 
 **Expected result:** Each product displays its own distinct image.
 
-**Actual result:** All products display the same image (a dog photo) instead of their correct product images.
+**Actual result:** All 6 products display the same image (a dog photo) instead of their correct product images. The automated check confirmed 6 products resolve to a single unique image URL.
 
 **Evidence:** `evidence/BUG-001-problem-user-images.png`
 
@@ -33,30 +33,30 @@ Each report follows the format I use day to day: unique ID, severity/priority, e
 
 ---
 
-## BUG-002 — Checkout accepts submission with a missing postal code after partial entry
+## BUG-002 — `error_user` cannot remove a product from the cart
 
 | Field | Detail |
 |-------|--------|
-| **Severity** | Minor |
-| **Priority** | Medium |
-| **Status** | Open (needs confirmation) |
-| **Environment** | Firefox 131, Ubuntu 22.04, https://www.saucedemo.com/ |
-| **Affected area** | Checkout — customer information |
+| **Severity** | Major |
+| **Priority** | High |
+| **Status** | Open |
+| **Environment** | Chromium (Playwright), Linux, https://www.saucedemo.com/ |
+| **Affected area** | Inventory / cart |
 
-**Preconditions:** Logged in as `standard_user`, one product in cart, on the "Your Information" step.
+**Preconditions:** Logged in as `error_user` / `secret_sauce`.
 
 **Steps to reproduce**
-1. Enter a first name and last name.
-2. Leave the postal code empty.
-3. Click **Continue**.
+1. Log in as `error_user`.
+2. Click **Add to cart** on "Sauce Labs Backpack" (the cart badge shows 1).
+3. Click **Remove** on the same product.
 
-**Expected result:** A validation error is shown: "Error: Postal Code is required."
+**Expected result:** The product is removed and the cart badge returns to 0.
 
-**Actual result:** Validation behaviour should be verified across builds; document the observed message and whether the field is enforced consistently.
+**Actual result:** The **Remove** action does not work — the item stays in the cart and the badge still shows 1.
 
-**Evidence:** `evidence/BUG-002-postal-code-validation.png`
+**Evidence:** `evidence/BUG-002-error-user-remove.png`
 
-**Notes:** Included as an example of a validation edge case to confirm with the team before marking as a defect.
+**Notes:** Reproduced via automated script. Specific to `error_user`; `standard_user` can remove items normally.
 
 ---
 
@@ -78,11 +78,14 @@ Each report follows the format I use day to day: unique ID, severity/priority, e
 
 **Expected result:** The inventory page loads within an acceptable threshold (e.g. under 2 seconds), comparable to `standard_user`.
 
-**Actual result:** The inventory page takes several seconds longer to load than for `standard_user`, indicating a performance regression.
+**Actual result:** The inventory page takes significantly longer to load. Measured with the automated capture script:
+- `performance_glitch_user`: **5704 ms**
+- `standard_user` (baseline): **651 ms**
+- Delta: **~5 seconds**
 
-**Evidence:** `evidence/BUG-003-performance-glitch.png` (and a Playwright trace can be attached)
+**Evidence:** `evidence/BUG-003-performance-glitch.png`
 
-**Notes:** Useful as a non-functional/performance defect example. The delay is consistent and tied to this specific user.
+**Notes:** The delay is consistent and tied to this specific user. Measurements come from `scripts/capture-evidence.js` in the automation suite.
 
 ---
 

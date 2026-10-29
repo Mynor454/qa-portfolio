@@ -1,11 +1,17 @@
 # Evidence
 
-This folder holds the screenshots and videos referenced by the bug reports:
+Screenshots captured for the bug reports in [`../bug-reports.md`](../bug-reports.md):
 
-- `BUG-001-problem-user-images.png`
-- `BUG-002-postal-code-validation.png`
-- `BUG-003-performance-glitch.png`
+- `BUG-001-problem-user-images.png` — all products share the same image under `problem_user`
+- `BUG-002-error-user-remove.png` — remove-from-cart fails under `error_user`
+- `BUG-003-performance-glitch.png` — slow inventory load under `performance_glitch_user`
 
-**To capture them:** log in to SauceDemo with the user named in each report, reproduce the steps, and take a screenshot at the moment the defect is visible. For the performance bug you can also export a Playwright trace from the automation suite.
+These were generated automatically by reproducing each defect with Playwright. See [`../../02-test-automation-playwright/scripts/capture-evidence.js`](../../02-test-automation-playwright/scripts/capture-evidence.js).
 
-Replace this note with the actual image files before publishing the portfolio.
+To regenerate:
+
+```bash
+cd ../../02-test-automation-playwright
+npm install
+node scripts/capture-evidence.js
+```
